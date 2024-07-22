@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heardle Decades Results Machine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMsdRx7UuC1Ktu5lSRqEHeCWl9aTiyI4myjU5d6" crossorigin="anonymous">
+    <style>
+        body {
+            font-family: Courier, monospace;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 24px;
+            word-wrap: break-word;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 10px;
+            font-family: Courier, monospace;
+            box-sizing: border-box;
+            padding: 10px;
+        }
+        button {
+            background: #FFCC00; /* New solid color */
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-family: Courier, monospace;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            display: block;
+            margin: 20px auto;
+            width: fit-content;
+        }
+        button:hover {
+            background: #E6B800; /* New solid color for hover */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        #result {
+            white-space: pre-wrap;
+            font-family: Courier, monospace;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+            overflow-x: auto;
+            word-wrap: break-word;
+        }
+        #copyButton {
+            display: none;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            textarea {
+                height: 200px;
+            }
+            button {
+                font-size: 16px;
+                padding: 12px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Heardle Decades Results Machine</h1>
+    <textarea id="input" placeholder="Paste your Heardle results here..."></textarea>
+    <button onclick="formatResults()">Format Results</button>
+    <button id="copyButton" onclick="copyResults()"><i class="fa-regular fa-copy"></i> Copy Results</button>
+    <div id="result"></div>
+
+    <script>
+        function formatDate() {
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            const today = new Date();
+            return today.toLocaleDateString('en-US', options).toUpperCase();
+        }
+
+        function formatResults() {
+            const input = document.getElementById('input').value;
+            const lines = input.split('\n');
+            let formattedResults = [];
+            let correct = 0;
+            let total = 0;
+            let firstTry = 0;
+
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].includes('Heardle') && !lines[i].includes('http')) {
+                    let category = lines[i].split('#')[0].trim().replace(/^Heardle\s+/, '');
+                    let result = '';
+                    
+                    for (let j = 1; j <= 3; j++) {
+                        if (i + j < lines.length && lines[i + j].match(/[🔊🔉🔇🟩🟥⬛⬜🟨🛇]/)) {
+                            result = lines[i + j].trim();
+                            break;
+                        }
+                    }
+
+                    if (result) {
+                        if (result.includes('🔊') || result.includes('🔉') || result.includes('🟩')) {
+                            correct++;
+                            total++;
+                            if (result.startsWith('🔊🟩') || result.startsWith('🔉🟩')) {
+                                firstTry++;
+                            }
+                        } else if (result.includes('🔇') || result.includes('🟥')) {
+                            total++;
+                        } else if (result === '🛇') {
+                            // Song unavailable, don't count in total
+                        }
+
+                        formattedResults.push(`${category}: ${result}`);
+                    }
+                }
+            }
+
+            const date = formatDate();
+            const summary = `HEARDLE RESULTS [${date}]\n${correct} of ${total} correct, ${firstTry} first try.`;
+            const output = summary + '\n\n' + formattedResults.join('\n\n');
+
+            document.getElementById('result').textContent = output;
+
+            // Show the copy button when results are generated
+            document.getElementById('copyButton').style.display = 'block';
+        }
+
+        function copyResults() {
+            const resultElement = document.getElementById('result');
+            const range = document.createRange();
+            range.selectNode(resultElement);
+            window.getSelection().removeAllRanges(); // clear current selection
+            window.getSelection().addRange(range); // to select text
+            document.execCommand("copy");
+            window.getSelection().removeAllRanges(); // to deselect
+            alert("Results copied to clipboard!");
+        }
+    </script>
+</body>
+</html>
